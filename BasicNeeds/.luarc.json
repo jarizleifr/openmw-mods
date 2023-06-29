@@ -1,0 +1,6 @@
+{
+    "runtime": {
+	"version": "LuaJIT",
+	"path": ["scripts/BasicNeeds/?.lua"]
+    }
+}

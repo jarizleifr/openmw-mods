@@ -1,0 +1,58 @@
+* Basic Needs for OpenMW
+A small mod I made just to learn how to use OpenMW's Lua API.
+
+The mod is still in alpha stage and there might be bugs and other oddities, due to OpenMW Lua still being a moving target, and me still getting acquainted with the scripting API.
+
+Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 2023), as the mod uses the fresh Spells API to dynamically add and remove debuffs from the player.
+
+#+CAPTION: Screenshot showcasing basic needs widgets on the right side of the screen
+#+NAME: Screenshot
+[[./BasicNeeds-screenshot-01.jpg]]
+
+** Features
+- Accumulate thirst, hunger and exhaustion while adventuring, accrue penalties for untending needs for too long. Drink, eat and sleep to recover. Rates are configurable in settings. Player gets informed whenever their status changes and there is a widget on the HUD.
+
+- Uses an internal whitelist table to determine what is considered a food, drink or stimulant, and how much will they recover of the respective needs. You can stave off exhaustion with a tactical use of moon sugar or skooma. No changes to existing items, all is powered by OpenMW Lua.
+
+- Also included is a refillable Waterskin item, which can be used three times and refilled when in water.
+
+  NOTE: Waterskin doesn't exist in the game world yet. You'll need to console it in, if you want to use it:
+  ~player->additem "jz_waterskin_full" 1~
+
+  Each gulp from the waterskin restores 150 points of thirst. Go into water and use an empty waterskin to refill it.
+
+** Changelog
+- 2023-06-29 - Initial alpha release (0.1.0)
+
+** Known bugs
+- Waterskin doesn't show up in inventory after use/refill, but requires one to close and reopen inventory screen. Just a visual thing.
+
+** Long-term issues and ideas for the future
+*** The waterskin uses a flask icon/model
+- Waterskin currently uses ~misc_flask_03~ as a base. Not interested in modelling anymore though, that ship sailed ages ago.
+
+*** HUD currently uses text for showing status
+- Bespoke icons would be nice, but I have limited time to get into that.
+- Similarly, sound effects for state changes could be more immersive than message boxes.
+
+*** HUD widget position doesn't respond to resolution change
+- After resolution change, a game save/load is required for the widgets to update. Not related to my mod, as there doesn't seem to be a way to subscribe to resolution changes yet.
+- Generally, the widget setup is a bit poor at the moment and YMMV depending on what resolution you're playing with.
+
+*** Waterskin refill won't work in shallow water
+- It's not enough to stand in water, you need to be deep enough so the swimming animation is playing. I need to see if this could be made better with a ray casting downwards and checking for water collision, or see if we get cell water level available later for the Cell API.
+
+*** Availability of items and services
+- Waterskin isn't yet available in the game without console commands.
+- There are many locations in the vanilla game where drink, food or beds may not be readily available. It would require a bigger overhaul to address this.
+
+*** Recognizing player rest state
+- So far, I haven't figured out a way to recognize if the player is just waiting or if player is actually resting. In its current state, all waiting is simply considered sleeping as far as exhaustion goes.
+- Also, differentiating whether player is using a bed or sleeping on the ground would be nice.
+
+*** Expand item values
+- Since we use a whitelist for drinks/stimulants/foods, it is trivial to add nutrition values to new items. At least ~Tamriel_Data~ is a strong contender to be included by default.
+
+*** Implement more features
+- A bedroll for camping. Could also look into disabling resting altogether, unless using a bed or a bedroll.
+- Chance of disease from raw meats (unless Bosmer, Khajiit or Orsimer). Would require a way to prepare meals, which is most likely out of scope for this mod. But we'll see what happens.

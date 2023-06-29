@@ -1,0 +1,2 @@
+* Jarizleifr's OpenMW Mod Workspace
+This repo contains all mod scripts I've done for the Morrowind's open-source implementation OpenMW.

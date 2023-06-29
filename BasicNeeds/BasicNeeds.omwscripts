@@ -1,0 +1,3 @@
+PLAYER: scripts/BasicNeeds/player.lua
+PLAYER: scripts/BasicNeeds/waterskin_player.lua
+GLOBAL: scripts/BasicNeeds/waterskin_global.lua

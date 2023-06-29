@@ -1,0 +1,58 @@
+name_Page: Basic Needs for OpenMW
+desc_Page: |
+  Thirst, Hunger and Exhaustion implemented in OpenMW Lua. Needs accumulate at specific rates and cause debuffs with severity increasing over time, if not tended to.
+
+  Severity breakpoints are as follows:
+    0 - 200  None
+  200 - 399  Mild
+  400 - 599  Moderate
+  600 - 799  Severe
+  800 - 999  Critical
+  1000       Death (if enabled)
+name_Group: Needs increase rates
+desc_Group: Needs respect the current timescale. All values are per hour in-game.
+name_EnableDeath: Enable Death
+desc_EnableDeath: If YES, the player will die when any of the needs reach 1000.
+name_ThirstRate: Thirst Rate
+desc_ThirstRate: "How much thirst accumulates per hour. (Default: 40.0)"
+name_HungerRate: Hunger Rate
+desc_HungerRate: "How much hunger accumulates per hour. (Default: 35.0)"
+name_ExhaustionRate: Exhaustion Rate
+desc_ExhaustionRate: "How much exhaustion accumulates per hour. (Default: 30.0)"
+name_ExhaustionRecoveryRate: Exhaustion Recovery Rate
+desc_ExhaustionRecoveryRate: "How much exhaustion decreases per hour of rest. (Default: 60.0)"
+thirstIncreaseMild: You're feeling slightly thirsty.
+thirstIncreaseModerate: You're feeling thirsty.
+thirstIncreaseSevere: You're feeling parched!
+thirstIncreaseCritical: You're feeling dehydrated!
+thirstIncreaseDeath: You've died of dehydration!
+thirstDecreaseNone: You're feeling quenched.
+thirstDecreaseMild: You could still have a drink.
+thirstDecreaseModerate: You're still thirsty.
+thirstDecreaseSevere: You're still feeling parched.
+thirstDecreaseCritical: You're still dehydrated.
+hungerIncreaseMild: You're feeling peckish.
+hungerIncreaseModerate: You're feeling hungry.
+hungerIncreaseSevere: You're feeling famished!
+hungerIncreaseCritical: You're starving for food!
+hungerIncreaseDeath: You've starved to death!
+hungerDecreaseNone: You're feeling sated.
+hungerDecreaseMild: You could still have a bite.
+hungerDecreaseModerate: You're still hungry.
+hungerDecreaseSevere: You're still feeling famished.
+hungerDecreaseCritical: You're still starving for food.
+exhaustionIncreaseMild: You're starting to feel tired.
+exhaustionIncreaseModerate: You're feeling tired.
+exhaustionIncreaseSevere: You're feeling drained!
+exhaustionIncreaseCritical: You're feeling exhausted!
+exhaustionIncreaseDeath: You've exerted yourself to death!
+exhaustionDecreaseNone: You're feeling energized.
+exhaustionDecreaseMild: You're still feeling a bit tired.
+exhaustionDecreaseModerate: You're still feeling tired.
+exhaustionDecreaseSevere: You're still feeling drained.
+exhaustionDecreaseCritical: You're still exhausted.
+waterskinRefilled: You filled the container with water.
+waterskinNotInWater: You need to be in water to fill the container.
+thirstWidget: Thirsty
+hungerWidget: Hungry
+exhaustionWidget: Tired
