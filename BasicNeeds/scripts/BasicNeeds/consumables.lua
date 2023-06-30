@@ -17,6 +17,7 @@ local AVAILABLE_PATCHES = {
    "tribunal.esm",
    "bloodmoon.esm",
    "tamriel_data.esm",
+   "oaab_data.esm",
 }
 
 local consumables = {
