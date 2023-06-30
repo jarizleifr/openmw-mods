@@ -12,7 +12,7 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
 ** Features
 - Accumulate thirst, hunger and exhaustion while adventuring, accrue penalties for untending needs for too long. Drink, eat and sleep to recover. Rates are configurable in settings. Player gets informed whenever their status changes and there is a widget on the HUD.
 
-- Uses an internal whitelist table to determine what is considered a food, drink or stimulant, and how much will they recover of the respective needs. You can stave off exhaustion with a tactical use of moon sugar or skooma. No changes to existing items, all is powered by OpenMW Lua.
+- Uses an internal whitelist table to determine how much a consumable changes thirst, hunger or exhaustion. You can stave off exhaustion with a tactical use of moon sugar or skooma. No changes to existing items, all is powered by OpenMW Lua.
 
 - Also included is a refillable Waterskin item, which can be used three times and refilled when in water.
 
@@ -22,12 +22,24 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
   Each gulp from the waterskin restores 150 points of thirst. Go into water and use an empty waterskin to refill it.
 
 ** Changelog
-- 2023-06-29 - Initial alpha release (0.1.0)
+*** 2023-06-30 - Minor update (0.1.1)
+- Refactor consumable data to use tabulated formats
+- Add support for patches
+- Add items from ~Morrowind.esm~, ~Tribunal.esm~ and ~Bloodmoon.esm~ to patches 
+- Add items from ~Tamriel_Data.esm~ to patches 
+*** 2023-06-29 - Initial alpha release (0.1.0)
 
 ** Known bugs
 - Waterskin doesn't show up in inventory after use/refill, but requires one to close and reopen inventory screen. Just a visual thing.
 
 ** Long-term issues and ideas for the future
+*** TODO Expand item values for other mods
+- [X] Tamriel_Data
+- [ ] OAAB_Data
+
+*** TODO Make a debugging mode which is toggleable in settings
+- Useful for testing
+
 *** The waterskin uses a flask icon/model
 - Waterskin currently uses ~misc_flask_03~ as a base. Not interested in modelling anymore though, that ship sailed ages ago.
 
@@ -49,9 +61,6 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
 *** Recognizing player rest state
 - So far, I haven't figured out a way to recognize if the player is just waiting or if player is actually resting. In its current state, all waiting is simply considered sleeping as far as exhaustion goes.
 - Also, differentiating whether player is using a bed or sleeping on the ground would be nice.
-
-*** Expand item values
-- Since we use a whitelist for drinks/stimulants/foods, it is trivial to add nutrition values to new items. At least ~Tamriel_Data~ is a strong contender to be included by default.
 
 *** Implement more features
 - A bedroll for camping. Could also look into disabling resting altogether, unless using a bed or a bedroll.

@@ -11,7 +11,7 @@ local types = require("openmw.types")
 local ui = require("openmw.ui")
 local time = require("openmw_aux.time")
 
-local constants = require("scripts.BasicNeeds.item_constants")
+local consumables = require("scripts.BasicNeeds.consumables")
 local hud = require("scripts.BasicNeeds.hud")
 local settings = require("scripts.BasicNeeds.settings")
 
@@ -100,7 +100,7 @@ local function updateEffects(prevStatus, need)
 end
 
 local function updateNeed(need, change)
-   if (not change or change == 0) then return end
+   if (change == 0) then return end
 
    local prevStatus = getStatus(need.value)
    if (change < 0) then
@@ -187,9 +187,12 @@ local function onConsume(item)
        (Ingredient.objectIsInstance(item) and Ingredient.record(item).id) or
        (Potion.objectIsInstance(item) and Potion.record(item).id)
 
-   updateNeed(thirst, constants.drinks[id])
-   updateNeed(hunger, constants.foods[id])
-   updateNeed(exhaustion, constants.stimulants[id])
+   local consumable = consumables[id]
+   if (consumable) then
+      updateNeed(thirst, consumable[1])
+      updateNeed(hunger, consumable[2])
+      updateNeed(exhaustion, consumable[3])
+   end
 end
 
 return {
