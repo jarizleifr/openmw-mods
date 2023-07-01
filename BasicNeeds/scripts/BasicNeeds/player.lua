@@ -6,12 +6,12 @@
 local math = require("math")
 local async = require("openmw.async")
 local core = require("openmw.core")
+local input = require("openmw.input")
 local self = require("openmw.self")
 local types = require("openmw.types")
 local ui = require("openmw.ui")
 local time = require("openmw_aux.time")
 
-local consumables = require("scripts.BasicNeeds.consumables")
 local hud = require("scripts.BasicNeeds.hud")
 local settings = require("scripts.BasicNeeds.settings")
 
@@ -160,7 +160,7 @@ settings:subscribe(async:callback(loadSettings))
 time.runRepeatedly(updateNeeds, UPDATE_INTERVAL, { type = time.GameTime })
 
 -- -----------------------------------------------------------------------------
--- Engine handlers
+-- Engine/event handlers
 -- -----------------------------------------------------------------------------
 local function onLoad(data)
    thirst = createState("thirst", data.thirst)
@@ -168,6 +168,11 @@ local function onLoad(data)
    exhaustion = createState("exhaustion", data.exhaustion)
    initialize(data.previousTime)
    ui.updateAll()
+   -- FIXME: For some reason, on loading game, dynamically created potions are
+   -- left in some limbo state where they can be used, but don't result in
+   -- correct 'onConsume' events. By running `getAll()` on player inventory,
+   -- the potions get normalized. Made issue #7448 about this.
+   types.Actor.inventory(self):getAll()
 end
 
 local function onSave()
@@ -180,18 +185,34 @@ local function onSave()
 end
 
 local function onConsume(item)
-   local Ingredient = types.Ingredient
-   local Potion = types.Potion
+   core.sendGlobalEvent("PlayerConsumeItem", {
+      player = self,
+      item = item,
+   })
+end
 
-   local id =
-       (Ingredient.objectIsInstance(item) and Ingredient.record(item).id) or
-       (Potion.objectIsInstance(item) and Potion.record(item).id)
+local function onInputAction(action)
+   if (core.isWorldPaused()) then return end
+   -- TODO: Using Sneak as hotkey is a workaround. Re-examine this if/when
+   -- OpenMW Lua makes running on-use scripts on miscellaneous items possible
+   if (action == input.ACTION.Sneak and types.Actor.isSwimming(self)) then
+      core.sendGlobalEvent("PlayerFillContainer", {
+         player = self,
+      })
+   end
+end
 
-   local consumable = consumables[id]
-   if (consumable) then
-      updateNeed(thirst, consumable[1])
-      updateNeed(hunger, consumable[2])
-      updateNeed(exhaustion, consumable[3])
+local function playerConsumedFood(eventData)
+   updateNeed(thirst, eventData.thirst)
+   updateNeed(hunger, eventData.hunger)
+   updateNeed(exhaustion, eventData.exhaustion)
+end
+
+local function playerFilledContainer(eventData)
+   if (eventData.containerName) then
+      ui.showMessage(L("filledContainer", { item = eventData.containerName }))
+   else
+      ui.showMessage(L("noContainers"))
    end
 end
 
@@ -213,5 +234,10 @@ return {
       onLoad = onLoad,
       onSave = onSave,
       onConsume = onConsume,
-   }
+      onInputAction = onInputAction,
+   },
+   eventHandlers = {
+      PlayerConsumedFood = playerConsumedFood,
+      PlayerFilledContainer = playerFilledContainer,
+   },
 }

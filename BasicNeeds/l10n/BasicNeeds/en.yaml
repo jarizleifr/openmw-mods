@@ -51,8 +51,8 @@ exhaustionDecreaseMild: You're still feeling a bit tired.
 exhaustionDecreaseModerate: You're still feeling tired.
 exhaustionDecreaseSevere: You're still feeling drained.
 exhaustionDecreaseCritical: You're still exhausted.
-waterskinRefilled: You filled the container with water.
-waterskinNotInWater: You need to be in water to fill the container.
+filledContainer: You filled {item} with water.
+noContainers: You don't have any refillable containers.
 thirstWidget: Thirsty
 hungerWidget: Hungry
 exhaustionWidget: Tired

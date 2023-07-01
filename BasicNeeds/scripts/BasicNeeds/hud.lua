@@ -27,7 +27,7 @@ local function createWidget(label, offset)
          text = label,
          textSize = 16,
          textColor = colors[1],
-      }
+      },
    }
 end
 

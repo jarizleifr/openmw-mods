@@ -1,9 +1,5 @@
 * Basic Needs for OpenMW
-A small mod I made just to learn how to use OpenMW's Lua API.
-
-The mod is still in alpha stage and there might be bugs and other oddities, due to OpenMW Lua still being a moving target, and me still getting acquainted with the scripting API.
-
-Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 2023), as the mod uses the fresh Spells API to dynamically add and remove debuffs from the player.
+Requires a recent build of ~OpenMW~ (mine was built from 0.49.0 sources in June 2023), as the mod uses the fresh Actor Spells API to dynamically add and remove debuffs from the player.
 
 #+CAPTION: Screenshot showcasing basic needs widgets on the right side of the screen
 #+NAME: Screenshot
@@ -14,12 +10,7 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
 
 - Uses an internal whitelist table to determine how much a consumable changes thirst, hunger or exhaustion. You can stave off exhaustion with a tactical use of moon sugar or skooma. No changes to existing items, all is powered by OpenMW Lua.
 
-- Also included is a refillable Waterskin item, which can be used three times and refilled when in water.
-
-  NOTE: Waterskin doesn't exist in the game world yet. You'll need to console it in, if you want to use it:
-  ~player->additem "jz_waterskin_full" 1~
-
-  Each gulp from the waterskin restores 150 points of thirst. Go into water and use an empty waterskin to refill it.
+- Press Sneak while swimming to refill a single water container in your inventory. This works with most of the bottles and jugs in the game, as well as of those in the supported mods.
 
 ** Effects
 *** Thirst
@@ -45,25 +36,31 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
 - 1000- :: Death
 
 ** Changelog
-*** 2023-07-01 - Minor update (0.1.2)
+*** 2023-07-01 - Major update (1.0.0)
+- Implement filling of any miscellaneous bottle/jug with water
+- Remove waterskin, as it serves no purpose anymore
+- Add an interface for querying needs, for extended mod support
+*** 2023-06-30 - Patch update (0.1.2)
 - Add items from ~OAAB_Data.esm~ to patches 
-*** 2023-06-30 - Minor update (0.1.1)
+*** 2023-06-30 - Patch update (0.1.1)
 - Refactor consumable data to use tabulated formats
 - Add support for patches
 - Add items from ~Morrowind.esm~, ~Tribunal.esm~ and ~Bloodmoon.esm~ to patches 
 - Add items from ~Tamriel_Data.esm~ to patches 
 *** 2023-06-29 - Initial alpha release (0.1.0)
 
+** Supported mods
+- Tamriel_Data
+- OAAB_Data
+
 ** Known bugs
-- Waterskin doesn't show up in inventory after use/refill, but requires one to close and reopen inventory screen. Just a visual thing.
+- Used bottles doesn't show up in inventory immediately, but requires one to close and reopen inventory screen, or do some other action in the inventory. Just a visual thing.
 - Both resting and waiting is considered sleeping by the mod. There is currently no easy way to find out if the player has actually slept.
+- Item data is only processed once, when starting a new game. Adding a new mod, even if it's supported, in the middle of a playthrough, doesn't add functionality to the new items.
 
 ** Long-term issues, future ideas
 *** TODO Make a debugging mode which is toggleable in settings
 - Useful for testing
-
-*** The waterskin uses a flask icon/model
-- Waterskin currently uses ~misc_flask_03~ as a base. Not interested in modelling anymore though, that ship sailed ages ago.
 
 *** HUD currently uses text for showing status
 - Bespoke icons would be nice, but I have limited time to get into that.
@@ -73,11 +70,11 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49 sources in June 20
 - After resolution change, a game save/load is required for the widgets to update. Not related to my mod, as there doesn't seem to be a way to subscribe to resolution changes yet.
 - Generally, the widget setup is a bit poor at the moment and YMMV depending on what resolution you're playing with.
 
-*** Waterskin refill won't work in shallow water
-- It's not enough to stand in water, you need to be deep enough so the swimming animation is playing. I need to see if this could be made better with a ray casting downwards and checking for water collision, or see if we get cell water level available later for the Cell API.
+*** Bottle refill won't work in shallow water
+- It's not enough to stand in water, you need to be deep enough so the swimming animation is playing.
+- I need to see if this could be made better with a ray casting downwards and checking for water collision, or see if we get cell water level available later for the Cell API. However, that would clash with use of Sneak action for refills...
 
 *** Availability of items and services
-- Waterskin isn't yet available in the game without console commands.
 - There are many locations in the vanilla game where drink, food or beds may not be readily available. It would require a bigger overhaul to address this.
 
 *** Implement more features
