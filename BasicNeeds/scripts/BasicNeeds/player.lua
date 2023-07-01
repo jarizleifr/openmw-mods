@@ -196,6 +196,19 @@ local function onConsume(item)
 end
 
 return {
+   interfaceName = "BasicNeeds",
+   interface = {
+      version = 1,
+      getThirstStatus = function()
+         return getStatus(thirst.value)
+      end,
+      getHungerStatus = function()
+         return getStatus(hunger.value)
+      end,
+      getExhaustionStatus = function()
+         return getStatus(exhaustion.value)
+      end,
+   },
    engineHandlers = {
       onLoad = onLoad,
       onSave = onSave,
