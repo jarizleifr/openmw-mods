@@ -14,6 +14,7 @@ local time = require("openmw_aux.time")
 
 local hud = require("scripts.BasicNeeds.hud")
 local settings = require("scripts.BasicNeeds.settings")
+local bed = require("scripts.BasicNeeds.bed")
 
 local L = core.l10n("BasicNeeds")
 
@@ -69,6 +70,9 @@ local exhaustion = createState("exhaustion", 0)
 local previousTime = nil
 local previousCell = nil
 
+local wellRestedTime = nil
+local sleepingInBed = false
+
 local maxValue = nil
 local thirstRate = nil
 local hungerRate = nil
@@ -87,7 +91,7 @@ local function updateEffects(prevStatus, need)
       end
       if (status == DEATH) then
          local health = types.Actor.stats.dynamic.health(self)
-         health.current = 0
+         health.current = -1000
       elseif (status > NONE) then
          if (status > prevStatus and prevStatus ~= INIT) then
             ui.showMessage(need.messages.increase[status])
@@ -122,13 +126,26 @@ local function updateNeeds()
 
    local currentCell = self.object.cell
    if (passedTime >= time.hour and previousCell == currentCell) then
-      updateNeed(exhaustion, exhaustionRecoveryRate * passedTime)
+      local restMult = (sleepingInBed and 1.0 or 0.5)
+      if (sleepingInBed and passedTime >= time.hour * 7) then
+         -- Add Well Rested if rested at least 7 hours in bed
+         wellRestedTime = nextTime
+         types.Actor.spells(self):add("jz_well_rested")
+      end
+      updateNeed(exhaustion, exhaustionRecoveryRate * restMult * passedTime)
    else
       updateNeed(exhaustion, exhaustionRate * passedTime)
    end
 
+   -- Remove Well Rested if 8 hours has passed
+   if (wellRestedTime and nextTime - wellRestedTime >= time.hour * 8) then
+      types.Actor.spells(self):remove("jz_well_rested")
+      wellRestedTime = nil
+   end
+
    previousTime = nextTime
    previousCell = currentCell
+   sleepingInBed = false
 end
 
 -- -----------------------------------------------------------------------------
@@ -166,6 +183,7 @@ local function onLoad(data)
    thirst = createState("thirst", data.thirst)
    hunger = createState("hunger", data.hunger)
    exhaustion = createState("exhaustion", data.exhaustion)
+   wellRestedTime = data.wellRestedTime
    initialize(data.previousTime)
    ui.updateAll()
    -- FIXME: For some reason, on loading game, dynamically created potions are
@@ -181,6 +199,7 @@ local function onSave()
       hunger = hunger.value,
       exhaustion = exhaustion.value,
       previousTime = previousTime,
+      wellRestedTime = wellRestedTime,
    }
 end
 
@@ -199,6 +218,11 @@ local function onInputAction(action)
       core.sendGlobalEvent("PlayerFillContainer", {
          player = self,
       })
+   end
+   -- TODO: Hacky workaround for checking beds. Activation handlers on activators
+   -- (i.e. beds) don't seem to do anything yet on OpenMW. Fix this when possible.
+   if (action == input.ACTION.Activate) then
+      sleepingInBed = bed.tryFindBed(self)
    end
 end
 
