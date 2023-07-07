@@ -9,24 +9,30 @@ desc_Page: |
   600 - 799  Severe
   800 - 999  Critical
   1000       Death (if enabled)
-name_Group: Needs increase rates
-desc_Group: Needs respect the current timescale. All values are per hour in-game.
+name_Group: Thirst/Hunger/Exhaustion
+desc_Group: All Needs rates are per in-game hour values and they adhere to the current timescale.
 name_EnableDeath: Enable Death
-desc_EnableDeath: If YES, the player will die when any of the needs reach 1000.
+desc_EnableDeath: "If YES, the player will die when any of the needs reach 1000.\n(Default: Yes)"
+name_EnableThirst: Enable Thirst
+desc_EnableThirst: "Set to NO to disable Thirst.\n(Default: Yes)"
 name_ThirstRate: Thirst Rate
-desc_ThirstRate: "How much thirst accumulates per hour. (Default: 40.0)"
+desc_ThirstRate: "How much thirst accumulates per hour of game time.\n(Default: 40.0)"
+name_EnableHunger: Enable Hunger
+desc_EnableHunger: "Set to NO to disable Hunger.\n(Default: Yes)"
 name_HungerRate: Hunger Rate
-desc_HungerRate: "How much hunger accumulates per hour. (Default: 35.0)"
+desc_HungerRate: "How much hunger accumulates per hour of game time.\n(Default: 35.0)"
+name_EnableExhaustion: Enable Exhaustion
+desc_EnableExhaustion: "Set to NO to disable Exhaustion.\n(Default: Yes)"
 name_ExhaustionRate: Exhaustion Rate
-desc_ExhaustionRate: "How much exhaustion accumulates per hour. (Default: 30.0)"
+desc_ExhaustionRate: "How much exhaustion accumulates per hour of game time.\n(Default: 30.0)"
 name_ExhaustionRecoveryRate: Exhaustion Recovery Rate
-desc_ExhaustionRecoveryRate: "How much exhaustion decreases per hour of rest. (Default: 60.0)"
+desc_ExhaustionRecoveryRate: "How much exhaustion decreases per hour of rest.\n(Default: 60.0)"
 thirstIncreaseMild: You're feeling slightly thirsty.
 thirstIncreaseModerate: You're feeling thirsty.
 thirstIncreaseSevere: You're feeling parched!
 thirstIncreaseCritical: You're feeling dehydrated!
 thirstIncreaseDeath: You've died of dehydration!
-thirstDecreaseNone: You're feeling quenched.
+thirstDecreaseNone: You feel quenched.
 thirstDecreaseMild: You could still have a drink.
 thirstDecreaseModerate: You're still thirsty.
 thirstDecreaseSevere: You're still feeling parched.
@@ -36,7 +42,7 @@ hungerIncreaseModerate: You're feeling hungry.
 hungerIncreaseSevere: You're feeling famished!
 hungerIncreaseCritical: You're starving for food!
 hungerIncreaseDeath: You've starved to death!
-hungerDecreaseNone: You're feeling sated.
+hungerDecreaseNone: You feel sated.
 hungerDecreaseMild: You could still have a bite.
 hungerDecreaseModerate: You're still hungry.
 hungerDecreaseSevere: You're still feeling famished.
@@ -46,7 +52,7 @@ exhaustionIncreaseModerate: You're feeling tired.
 exhaustionIncreaseSevere: You're feeling drained!
 exhaustionIncreaseCritical: You're feeling exhausted!
 exhaustionIncreaseDeath: You've exerted yourself to death!
-exhaustionDecreaseNone: You're feeling energized.
+exhaustionDecreaseNone: You feel refreshed.
 exhaustionDecreaseMild: You're still feeling a bit tired.
 exhaustionDecreaseModerate: You're still feeling tired.
 exhaustionDecreaseSevere: You're still feeling drained.

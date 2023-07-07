@@ -6,12 +6,44 @@
 local storage = require("openmw.storage")
 local I = require("openmw.interfaces")
 
+local SETTING = {
+   EnableDeath = "EnableDeath",
+   EnableThirst = "EnableThirst",
+   ThirstRate = "ThirstRate",
+   EnableHunger = "EnableHunger",
+   HungerRate = "HungerRate",
+   EnableExhaustion = "EnableExhaustion",
+   ExhaustionRate = "ExhaustionRate",
+   ExhaustionRecoveryRate = "ExhaustionRecoveryRate",
+}
+
 I.Settings.registerPage {
    key = "BasicNeeds",
    l10n = "BasicNeeds",
    name = "name_Page",
    description = "desc_Page",
 }
+
+local function enabled(key, default)
+   return {
+      key = key,
+      renderer = "checkbox",
+      name = "name_" .. key,
+      description = "desc_" .. key,
+      default = default,
+   }
+end
+
+local function rate(key, default)
+   return {
+      key = key,
+      renderer = "number",
+      name = "name_" .. key,
+      description = "desc_" .. key,
+      min = 1,
+      default = default,
+   }
+end
 
 I.Settings.registerGroup {
    page = "BasicNeeds",
@@ -21,42 +53,18 @@ I.Settings.registerGroup {
    description = "desc_Group",
    permanentStorage = false,
    settings = {
-      {
-         key = "EnableDeath",
-         renderer = "checkbox",
-         name = "name_EnableDeath",
-         description = "desc_EnableDeath",
-         default = true,
-      },
-      {
-         key = "ThirstRate",
-         renderer = "number",
-         name = "name_ThirstRate",
-         description = "desc_ThirstRate",
-         default = 40,
-      },
-      {
-         key = "HungerRate",
-         renderer = "number",
-         name = "name_HungerRate",
-         description = "desc_HungerRate",
-         default = 35,
-      },
-      {
-         key = "ExhaustionRate",
-         renderer = "number",
-         name = "name_ExhaustionRate",
-         description = "desc_ExhaustionRate",
-         default = 30,
-      },
-      {
-         key = "ExhaustionRecoveryRate",
-         renderer = "number",
-         name = "name_ExhaustionRecoveryRate",
-         description = "desc_ExhaustionRecoveryRate",
-         default = 60,
-      },
+      enabled(SETTING.EnableDeath, true),
+      enabled(SETTING.EnableThirst, true),
+      rate(SETTING.ThirstRate, 40),
+      enabled(SETTING.EnableHunger, true),
+      rate(SETTING.HungerRate, 35),
+      enabled(SETTING.EnableExhaustion, true),
+      rate(SETTING.ExhaustionRate, 30),
+      rate(SETTING.ExhaustionRecoveryRate, 60),
    },
 }
 
-return storage.playerSection("SettingsPlayerBasicNeeds")
+return {
+   SETTING = SETTING,
+   group = storage.playerSection("SettingsPlayerBasicNeeds")
+}

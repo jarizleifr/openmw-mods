@@ -28,6 +28,7 @@ local STATE = {
 function Need.create(key, actor, value)
    local self = setmetatable({}, Need)
    self.STATE = STATE
+   self.enabled = true
    self.actor = actor
    self.value = value
    self.maxValue = 1000
@@ -69,6 +70,19 @@ function Need:decreaseMessage()
    ui.showMessage(self.messages.decrease[self:status()])
 end
 
+function Need:isEnabled()
+   return self.enabled
+end
+
+function Need:setEnabled(enabled)
+   -- If setting to disabled, reset need
+   if (self.enabled and not enabled) then
+      self.value = 0
+      self:updateEffects(STATE.Init)
+   end
+   self.enabled = enabled
+end
+
 function Need:setMaxValue(maxValue)
    self.maxValue = maxValue
 end
@@ -94,7 +108,7 @@ function Need:updateEffects(prevStatus)
 end
 
 function Need:mod(change)
-   if (change == 0) then return end
+   if (not self.enabled or change == 0) then return end
 
    local prevStatus = self:status()
    self.value = util.clamp(self.value + change, 0, self.maxValue)

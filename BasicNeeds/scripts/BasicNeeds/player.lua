@@ -14,8 +14,8 @@ local Actor = require("openmw.types").Actor
 
 local settings = require("scripts.BasicNeeds.settings")
 local bed = require("scripts.BasicNeeds.bed")
-
 local Need = require("scripts.BasicNeeds.need")
+
 local STATE = Need.STATE
 
 local L = core.l10n("BasicNeeds")
@@ -40,14 +40,8 @@ local hungerRate = nil
 local exhaustionRate = nil
 local exhaustionRecoveryRate = nil
 
-local function updateNeeds()
-   local nextTime = core.getGameTime()
-   local passedTime = nextTime - previousTime
-
-   thirst:mod(thirstRate * passedTime)
-   hunger:mod(hungerRate * passedTime)
-
-   local currentCell = self.object.cell
+local function rested(currentCell, passedTime, nextTime)
+   if (not exhaustion:isEnabled()) then return false end
    if (passedTime >= time.hour and previousCell == currentCell) then
       local restMult = (sleepingInBed and 1.0 or 0.5)
       if (sleepingInBed and passedTime >= time.hour * 7) then
@@ -57,15 +51,29 @@ local function updateNeeds()
          ui.showMessage(L("exhaustionGainWellRested"))
       end
       exhaustion:mod(exhaustionRecoveryRate * restMult * passedTime)
-   else
-      exhaustion:mod(exhaustionRate * passedTime)
+      return true
    end
 
-   -- Remove Well Rested if 8 hours has passed
+   -- Remove Well Rested if 8 hours have passed
    if (wellRestedTime and nextTime - wellRestedTime >= time.hour * 8) then
+      -- TODO: Once we can cast regular spells on Actors with Lua, this cleanup
+      -- can be removed, as then Well Rested would just expire on its own
       Actor.spells(self):remove("jz_well_rested")
       ui.showMessage(L("exhaustionLoseWellRested"))
       wellRestedTime = nil
+   end
+   return false
+end
+
+local function updateNeeds()
+   local nextTime = core.getGameTime()
+   local passedTime = nextTime - previousTime
+   local currentCell = self.object.cell
+
+   thirst:mod(thirstRate * passedTime)
+   hunger:mod(hungerRate * passedTime)
+   if (not rested(currentCell, passedTime, nextTime)) then
+      exhaustion:mod(exhaustionRate * passedTime)
    end
 
    previousTime = nextTime
@@ -77,18 +85,32 @@ end
 -- Initialization
 -- -----------------------------------------------------------------------------
 local function loadSettings()
+   local SETTING = settings.SETTING
+   local group = settings.group
+
+   -- Enable / Disable needs
+   thirst:setEnabled(group:get(SETTING.EnableThirst))
+   hunger:setEnabled(group:get(SETTING.EnableHunger))
+   local enableExhaustion = group:get(SETTING.EnableExhaustion)
+   if (not enableExhaustion) then
+      -- TODO: Once we can cast regular spells on Actors with Lua, this cleanup
+      -- can be removed, as then Well Rested would just expire on its own
+      Actor.spells(self):remove("jz_well_rested")
+   end
+   exhaustion:setEnabled(enableExhaustion)
+
    -- If death is disabled, simply limit values to 999
-   local maxValue = settings:get("EnableDeath") and 1000 or 999
+   local maxValue = group:get(SETTING.EnableDeath) and 1000 or 999
    thirst:setMaxValue(maxValue)
    hunger:setMaxValue(maxValue)
    exhaustion:setMaxValue(maxValue)
 
    -- All rates are configured as per hour values, so we first convert them to
    -- per second values
-   thirstRate = settings:get("ThirstRate") / time.hour
-   hungerRate = settings:get("HungerRate") / time.hour
-   exhaustionRate = settings:get("ExhaustionRate") / time.hour
-   exhaustionRecoveryRate = -(settings:get("ExhaustionRecoveryRate") / time.hour)
+   thirstRate = group:get(SETTING.ThirstRate) / time.hour
+   hungerRate = group:get(SETTING.HungerRate) / time.hour
+   exhaustionRate = group:get(SETTING.ExhaustionRate) / time.hour
+   exhaustionRecoveryRate = -(group:get(SETTING.ExhaustionRecoveryRate) / time.hour)
 end
 
 local function initialize(startTime)
@@ -102,7 +124,7 @@ local function initialize(startTime)
 end
 
 initialize(core.getGameTime())
-settings:subscribe(async:callback(loadSettings))
+settings.group:subscribe(async:callback(loadSettings))
 time.runRepeatedly(updateNeeds, UPDATE_INTERVAL, { type = time.GameTime })
 
 -- -----------------------------------------------------------------------------
@@ -143,14 +165,14 @@ local function onInputAction(action)
    if (core.isWorldPaused()) then return end
    -- TODO: Using Sneak as hotkey is a workaround. Re-examine this if/when
    -- OpenMW Lua makes running on-use scripts on miscellaneous items possible
-   if (action == input.ACTION.Sneak and Actor.isSwimming(self)) then
+   if (thirst:isEnabled() and action == input.ACTION.Sneak and Actor.isSwimming(self)) then
       core.sendGlobalEvent("PlayerFillContainer", {
          player = self,
       })
    end
    -- TODO: Hacky workaround for checking beds. Activation handlers on activators
    -- (i.e. beds) don't seem to do anything yet on OpenMW. Fix this when possible.
-   if (action == input.ACTION.Activate) then
+   if (exhaustion:isEnabled() and action == input.ACTION.Activate) then
       sleepingInBed = bed.tryFindBed(self)
    end
 end
