@@ -54,6 +54,7 @@ local function updateNeeds()
          -- Add Well Rested if rested at least 7 hours in bed
          wellRestedTime = nextTime
          Actor.spells(self):add("jz_well_rested")
+         ui.showMessage(L("exhaustionGainWellRested"))
       end
       exhaustion:mod(exhaustionRecoveryRate * restMult * passedTime)
    else
@@ -63,6 +64,7 @@ local function updateNeeds()
    -- Remove Well Rested if 8 hours has passed
    if (wellRestedTime and nextTime - wellRestedTime >= time.hour * 8) then
       Actor.spells(self):remove("jz_well_rested")
+      ui.showMessage(L("exhaustionLoseWellRested"))
       wellRestedTime = nil
    end
 
