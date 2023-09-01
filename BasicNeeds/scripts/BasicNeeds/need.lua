@@ -3,17 +3,14 @@
 -- scripts/BasicNeeds/need.lua
 -- 2023 -- Antti Joutsi <antti.joutsi@gmail.com>
 -- -----------------------------------------------------------------------------
-local core = require("openmw.core")
+local self = require("openmw.self")
 local ui = require("openmw.ui")
 local util = require("openmw.util")
 
 local hud = require("scripts.BasicNeeds.hud")
 
 local Actor = require("openmw.types").Actor
-local L = core.l10n("BasicNeeds")
-
-local Need = {}
-Need.__index = Need
+local L = require("openmw.core").l10n("BasicNeeds")
 
 local STATE = {
    Init     = 0,
@@ -25,20 +22,22 @@ local STATE = {
    Death    = 6,
 }
 
-function Need.create(key, actor, value)
-   local self = setmetatable({}, Need)
-   self._enabled = true
-   self._actor = actor
-   self._value = value
-   self._maxValue = 1000
-   self._widget = hud[key]
-   self._effects = {
+local Need = { STATE = STATE }
+Need.__index = Need
+
+function Need.create(key, value)
+   local need = setmetatable({}, Need)
+   need._enabled = true
+   need._value = value
+   need._maxValue = 1000
+   need._widget = hud[key]
+   need._effects = {
       [STATE.Mild]     = "jz_mild_" .. key,
       [STATE.Moderate] = "jz_moderate_" .. key,
       [STATE.Severe]   = "jz_severe_" .. key,
       [STATE.Critical] = "jz_critical_" .. key,
    }
-   self._messages = {
+   need._messages = {
       increase = {
          [STATE.Mild]     = L(key .. "IncreaseMild"),
          [STATE.Moderate] = L(key .. "IncreaseModerate"),
@@ -54,77 +53,67 @@ function Need.create(key, actor, value)
          [STATE.Critical] = L(key .. "DecreaseCritical"),
       }
    }
-   self:_updateEffects(STATE.Init)
-   return self
+   need:_updateEffects(STATE.Init)
+   return need
 end
 
-function Need:value()
-   return self._value
+function Need.status(need)
+   return 1 + math.floor(need._value / 200)
 end
 
-function Need:status()
-   return 1 + math.floor(self._value / 200)
-end
+function Need.value(need) return need._value end
+function Need.isEnabled(need) return need._enabled end
 
-function Need:isEnabled()
-   return self._enabled
-end
+function Need.setMaxValue(need, maxValue) need._maxValue = maxValue end
 
-function Need:setEnabled(enabled)
+function Need.setEnabled(need, enabled)
    -- If setting to disabled, reset need
-   if (self._enabled and not enabled) then
-      self._value = 0
-      self:_updateEffects(STATE.Init)
+   if (need._enabled and not enabled) then
+      need._value = 0
+      need:_updateEffects(STATE.Init)
    end
-   self._enabled = enabled
+   need._enabled = enabled
 end
 
-function Need:setMaxValue(maxValue)
-   self._maxValue = maxValue
-end
+function Need.mod(need, change)
+   if (not need._enabled or change == 0) then return end
 
-function Need:mod(change)
-   if (not self._enabled or change == 0) then return end
-
-   local prevStatus = self:status()
-   self._value = util.clamp(self._value + change, 0, self._maxValue)
+   local prevStatus = need:status()
+   need._value = util.clamp(need._value + change, 0, need._maxValue)
    if (change < 0) then
-      self:_decreaseMessage()
+      need:_decreaseMessage()
    end
-   self:_updateEffects(prevStatus)
+   need:_updateEffects(prevStatus)
 end
 
-function Need:_updateEffects(prevStatus)
-   local status = self:status()
+function Need._updateEffects(need, prevStatus)
+   local status = need:status()
    if (status == prevStatus) then return end
 
-   for _, effect in pairs(self._effects) do
-      Actor.spells(self._actor):remove(effect)
+   for _, effect in pairs(need._effects) do
+      Actor.spells(self):remove(effect)
    end
-   self._widget:update(status)
+   need._widget:update(status)
 
    if (status == STATE.None) then return end
 
    if (status > prevStatus and prevStatus ~= STATE.Init) then
-      self:_increaseMessage()
+      need:_increaseMessage()
    end
    if (status == STATE.Death) then
-      local health = Actor.stats.dynamic.health(self._actor)
+      local health = Actor.stats.dynamic.health(self)
       health.current = -1000
    else
-      Actor.spells(self._actor):add(self._effects[status])
+      Actor.spells(self):add(need._effects[status])
    end
 end
 
-function Need:_increaseMessage()
-   ui.showMessage(self._messages.increase[self:status()])
+function Need._increaseMessage(need)
+   ui.showMessage(need._messages.increase[need:status()])
 end
 
-function Need:_decreaseMessage()
-   ui.showMessage(self._messages.decrease[self:status()])
+function Need._decreaseMessage(need)
+   ui.showMessage(need._messages.decrease[need:status()])
 end
 
-return {
-   STATE = STATE,
-   create = Need.create,
-}
+return Need

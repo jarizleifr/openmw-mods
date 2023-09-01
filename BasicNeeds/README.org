@@ -14,6 +14,8 @@ Requires a recent build of ~OpenMW~ (mine was built from 0.49.0 sources in June 
 
 - Sleep in a bed, hammock or bedroll for at least 7 hours and gain a Well Rested (+5 Luck) bonus for 8 next hours. Resting or waiting without a bed will recover exhaustion only at a half rate. Well Rested functionality is disabled if Exhaustion is disabled.
 
+- When fast travelling, trip length is a factor. The longer the trip, the more you'll get accommodated during the travel. Multiple short trips will accumulate needs at a faster relative rate than a single long one, where we can assume the shipmasters and caravaners will provide some provisions and a place to rest for the travelers.
+
 ** Effects
 *** Thirst
 As your thirst grows, you'll start feeling dizzy and may find it harder to focus on activities requiring concentration or fine-motor skills.
@@ -44,6 +46,12 @@ As you become more and more tired, your movements and ability to think get incre
 - 1000- :: Death
 
 ** Changelog
+*** 2023-09-03 - Minor update (1.3.0-1.3.1)
+- Add decay function to fast travel needs, depending on trip length
+- State refactor, add unit tests
+- Fix wrong effect in Mildly Tired
+*** 2023-09-01 - Patch update (1.2.1)
+- Some refactoring and code cleanup
 *** 2023-07-07 - Minor update (1.2.0)
 - Implement enable/disable functionality for each need
 - Fine-tune effects
@@ -73,6 +81,8 @@ As you become more and more tired, your movements and ability to think get incre
 - Item data is only processed once, when starting a new game. Adding a new mod, even if it's supported, in the middle of a playthrough, doesn't add functionality to the new items.
 
 ** Long-term issues, future ideas
+*** TODO Rewrite entire mod in Fennel, because Fennel rules
+*** TODO Bedroll in Census doesn't use Bed_Standard, add check
 *** TODO Could use a tagging system instead of numeric values for items
 - Like maybe have tags like ~FoodSmall~, ~DrinkMedium~, ~StimulantLarge~ that can be mixed and matched, then each value could be configured in Settings. But storing complex item metadata could also be its own mod, as there are more use-cases for something like this, for example in crafting potentialities.
 
