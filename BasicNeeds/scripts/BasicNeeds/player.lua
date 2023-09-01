@@ -8,29 +8,29 @@ local core = require("openmw.core")
 local input = require("openmw.input")
 local self = require("openmw.self")
 local ui = require("openmw.ui")
+local types = require("openmw.types")
 local time = require("openmw_aux.time")
 
-local Actor = require("openmw.types").Actor
-
-local settings = require("scripts.BasicNeeds.settings")
 local bed = require("scripts.BasicNeeds.bed")
-local Need = require("scripts.BasicNeeds.need")
+local settings = require("scripts.BasicNeeds.settings")
+local need = require("scripts.BasicNeeds.need")
 
-local STATE = Need.STATE
-
+local ACTION = input.ACTION
 local L = core.l10n("BasicNeeds")
+
+local Actor = types.Actor
 
 -- -----------------------------------------------------------------------------
 -- Script state
 -- -----------------------------------------------------------------------------
 local UPDATE_INTERVAL = time.second * 10
 
-local thirst = Need.create("thirst", self, 0)
-local hunger = Need.create("hunger", self, 0)
-local exhaustion = Need.create("exhaustion", self, 0)
+local thirst = need.create("thirst", self, 0)
+local hunger = need.create("hunger", self, 0)
+local exhaustion = need.create("exhaustion", self, 0)
 
-local previousTime = nil
-local previousCell = nil
+local previousTime = core.getGameTime()
+local previousCell = self.object.cell
 
 local wellRestedTime = nil
 local sleepingInBed = false
@@ -85,45 +85,27 @@ end
 -- Initialization
 -- -----------------------------------------------------------------------------
 local function loadSettings()
-   local SETTING = settings.SETTING
-   local group = settings.group
-
-   -- Enable / Disable needs
-   thirst:setEnabled(group:get(SETTING.EnableThirst))
-   hunger:setEnabled(group:get(SETTING.EnableHunger))
-   local enableExhaustion = group:get(SETTING.EnableExhaustion)
-   if (not enableExhaustion) then
+   local values = settings.getValues(settings.group)
+   thirst:setEnabled(values.enableThirst)
+   hunger:setEnabled(values.enableHunger)
+   exhaustion:setEnabled(values.enableExhaustion)
+   if (not values.enableExhaustion) then
       -- TODO: Once we can cast regular spells on Actors with Lua, this cleanup
       -- can be removed, as then Well Rested would just expire on its own
       Actor.spells(self):remove("jz_well_rested")
    end
-   exhaustion:setEnabled(enableExhaustion)
 
-   -- If death is disabled, simply limit values to 999
-   local maxValue = group:get(SETTING.EnableDeath) and 1000 or 999
-   thirst:setMaxValue(maxValue)
-   hunger:setMaxValue(maxValue)
-   exhaustion:setMaxValue(maxValue)
+   thirst:setMaxValue(values.maxValue)
+   hunger:setMaxValue(values.maxValue)
+   exhaustion:setMaxValue(values.maxValue)
 
-   -- All rates are configured as per hour values, so we first convert them to
-   -- per second values
-   thirstRate = group:get(SETTING.ThirstRate) / time.hour
-   hungerRate = group:get(SETTING.HungerRate) / time.hour
-   exhaustionRate = group:get(SETTING.ExhaustionRate) / time.hour
-   exhaustionRecoveryRate = -(group:get(SETTING.ExhaustionRecoveryRate) / time.hour)
+   thirstRate = values.thirstRate
+   hungerRate = values.hungerRate
+   exhaustionRate = values.exhaustionRate
+   exhaustionRecoveryRate = values.exhaustionRecoveryRate
 end
 
-local function initialize(startTime)
-   previousTime = startTime
-   previousCell = self.object.cell
-   loadSettings()
-   -- Force update effects on initialize
-   thirst:updateEffects(STATE.Init)
-   hunger:updateEffects(STATE.Init)
-   exhaustion:updateEffects(STATE.Init)
-end
-
-initialize(core.getGameTime())
+loadSettings()
 settings.group:subscribe(async:callback(loadSettings))
 time.runRepeatedly(updateNeeds, UPDATE_INTERVAL, { type = time.GameTime })
 
@@ -131,11 +113,13 @@ time.runRepeatedly(updateNeeds, UPDATE_INTERVAL, { type = time.GameTime })
 -- Engine/event handlers
 -- -----------------------------------------------------------------------------
 local function onLoad(data)
-   thirst = Need.create("thirst", self, data.thirst)
-   hunger = Need.create("hunger", self, data.hunger)
-   exhaustion = Need.create("exhaustion", self, data.exhaustion)
+   previousTime = data.previousTime
+   previousCell = self.object.cell
    wellRestedTime = data.wellRestedTime
-   initialize(data.previousTime)
+   thirst = need.create("thirst", self, data.thirst)
+   hunger = need.create("hunger", self, data.hunger)
+   exhaustion = need.create("exhaustion", self, data.exhaustion)
+   loadSettings()
    ui.updateAll()
    -- FIXME: For some reason, on loading game, dynamically created potions are
    -- left in some limbo state where they can be used, but don't result in
@@ -146,9 +130,9 @@ end
 
 local function onSave()
    return {
-      thirst = thirst.value,
-      hunger = hunger.value,
-      exhaustion = exhaustion.value,
+      thirst = thirst:value(),
+      hunger = hunger:value(),
+      exhaustion = exhaustion:value(),
       previousTime = previousTime,
       wellRestedTime = wellRestedTime,
    }
@@ -165,14 +149,14 @@ local function onInputAction(action)
    if (core.isWorldPaused()) then return end
    -- TODO: Using Sneak as hotkey is a workaround. Re-examine this if/when
    -- OpenMW Lua makes running on-use scripts on miscellaneous items possible
-   if (thirst:isEnabled() and action == input.ACTION.Sneak and Actor.isSwimming(self)) then
+   if (thirst:isEnabled() and action == ACTION.Sneak and Actor.isSwimming(self)) then
       core.sendGlobalEvent("PlayerFillContainer", {
          player = self,
       })
    end
    -- TODO: Hacky workaround for checking beds. Activation handlers on activators
    -- (i.e. beds) don't seem to do anything yet on OpenMW. Fix this when possible.
-   if (exhaustion:isEnabled() and action == input.ACTION.Activate) then
+   if (exhaustion:isEnabled() and action == ACTION.Activate) then
       sleepingInBed = bed.tryFindBed(self)
    end
 end

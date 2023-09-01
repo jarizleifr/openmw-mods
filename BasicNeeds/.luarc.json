@@ -3,5 +3,10 @@
 	"version": "LuaJIT",
 	"path": ["scripts/BasicNeeds/?.lua"]
     },
+    "doc": {
+        "privateName": [
+            "_*"
+        ]
+    },
     "workspace.library": ["../api"]
 }

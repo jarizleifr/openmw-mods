@@ -17,8 +17,12 @@ local colors = {
    util.color.rgba(200 / 255, 60 / 255, 30 / 255, 1),     -- DEATH
 }
 
-local function createWidget(label, offset)
-   return ui.create {
+local Widget = {}
+Widget.__index = Widget
+
+function Widget.create(label, offset)
+   local self = setmetatable({}, Widget)
+   self.element = ui.create {
       layer = "HUD",
       type = ui.TYPE.Text,
       props = {
@@ -29,11 +33,16 @@ local function createWidget(label, offset)
          textColor = colors[1],
       },
    }
+   return self
+end
+
+function Widget:update(status)
+   self.element.layout.props.textColor = colors[status]
+   self.element:update()
 end
 
 return {
-   colors = colors,
-   thirst = createWidget(L("thirstWidget"), -0.033),
-   hunger = createWidget(L("hungerWidget"), 0.0),
-   exhaustion = createWidget(L("exhaustionWidget"), 0.033),
+   thirst = Widget.create(L("thirstWidget"), -0.033),
+   hunger = Widget.create(L("hungerWidget"), 0.0),
+   exhaustion = Widget.create(L("exhaustionWidget"), 0.033),
 }

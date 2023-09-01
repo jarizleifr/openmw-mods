@@ -27,19 +27,18 @@ local STATE = {
 
 function Need.create(key, actor, value)
    local self = setmetatable({}, Need)
-   self.STATE = STATE
-   self.enabled = true
-   self.actor = actor
-   self.value = value
-   self.maxValue = 1000
-   self.widget = hud[key]
-   self.effects = {
+   self._enabled = true
+   self._actor = actor
+   self._value = value
+   self._maxValue = 1000
+   self._widget = hud[key]
+   self._effects = {
       [STATE.Mild]     = "jz_mild_" .. key,
       [STATE.Moderate] = "jz_moderate_" .. key,
       [STATE.Severe]   = "jz_severe_" .. key,
       [STATE.Critical] = "jz_critical_" .. key,
    }
-   self.messages = {
+   self._messages = {
       increase = {
          [STATE.Mild]     = L(key .. "IncreaseMild"),
          [STATE.Moderate] = L(key .. "IncreaseModerate"),
@@ -55,67 +54,74 @@ function Need.create(key, actor, value)
          [STATE.Critical] = L(key .. "DecreaseCritical"),
       }
    }
+   self:_updateEffects(STATE.Init)
    return self
 end
 
+function Need:value()
+   return self._value
+end
+
 function Need:status()
-   return 1 + math.floor(self.value / 200)
-end
-
-function Need:increaseMessage()
-   ui.showMessage(self.messages.increase[self:status()])
-end
-
-function Need:decreaseMessage()
-   ui.showMessage(self.messages.decrease[self:status()])
+   return 1 + math.floor(self._value / 200)
 end
 
 function Need:isEnabled()
-   return self.enabled
+   return self._enabled
 end
 
 function Need:setEnabled(enabled)
    -- If setting to disabled, reset need
-   if (self.enabled and not enabled) then
-      self.value = 0
-      self:updateEffects(STATE.Init)
+   if (self._enabled and not enabled) then
+      self._value = 0
+      self:_updateEffects(STATE.Init)
    end
-   self.enabled = enabled
+   self._enabled = enabled
 end
 
 function Need:setMaxValue(maxValue)
-   self.maxValue = maxValue
-end
-
-function Need:updateEffects(prevStatus)
-   local status = self:status()
-   if (status ~= prevStatus) then
-      for _, effect in pairs(self.effects) do
-         Actor.spells(self.actor):remove(effect)
-      end
-      if (status == STATE.Death) then
-         local health = Actor.stats.dynamic.health(self.actor)
-         health.current = -1000
-      elseif (status > STATE.None) then
-         if (status > prevStatus and prevStatus ~= STATE.Init) then
-            self:increaseMessage()
-         end
-         Actor.spells(self.actor):add(self.effects[status])
-      end
-      self.widget.layout.props.textColor = hud.colors[status]
-      self.widget:update()
-   end
+   self._maxValue = maxValue
 end
 
 function Need:mod(change)
-   if (not self.enabled or change == 0) then return end
+   if (not self._enabled or change == 0) then return end
 
    local prevStatus = self:status()
-   self.value = util.clamp(self.value + change, 0, self.maxValue)
+   self._value = util.clamp(self._value + change, 0, self._maxValue)
    if (change < 0) then
-      self:decreaseMessage()
+      self:_decreaseMessage()
    end
-   self:updateEffects(prevStatus)
+   self:_updateEffects(prevStatus)
+end
+
+function Need:_updateEffects(prevStatus)
+   local status = self:status()
+   if (status == prevStatus) then return end
+
+   for _, effect in pairs(self._effects) do
+      Actor.spells(self._actor):remove(effect)
+   end
+   self._widget:update(status)
+
+   if (status == STATE.None) then return end
+
+   if (status > prevStatus and prevStatus ~= STATE.Init) then
+      self:_increaseMessage()
+   end
+   if (status == STATE.Death) then
+      local health = Actor.stats.dynamic.health(self._actor)
+      health.current = -1000
+   else
+      Actor.spells(self._actor):add(self._effects[status])
+   end
+end
+
+function Need:_increaseMessage()
+   ui.showMessage(self._messages.increase[self:status()])
+end
+
+function Need:_decreaseMessage()
+   ui.showMessage(self._messages.decrease[self:status()])
 end
 
 return {
